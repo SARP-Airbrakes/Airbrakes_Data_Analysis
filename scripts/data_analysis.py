@@ -282,8 +282,7 @@ class FlightDataAnalyzer():
         
         return cd
     
-    def _get_predicted_apogee(self, mass, altitude, velocity, cd, area, pressure, temperature):
-        rho = self._air_density_from_pressure(pressure, temperature)
+    def _get_predicted_apogee(self, mass, altitude, velocity, cd, area, rho):
         k = 0.5 * rho * cd * area
         g = 9.81
         apogee = altitude + mass / (2*k) * np.log(1 + (k * velocity**2) / (mass * g))
@@ -331,15 +330,18 @@ class FlightDataAnalyzer():
         pressure = self.df['pressure_pascals']
         temperature = self.df['temperature_c'] + 273.15
         accel_z = self.df['accel_z_mps2'] - 9.81
+        agl_apogee = max(agl_altitude)
 
         mass_kg = 40.0 * 0.45359237
         frontal_area_m2 = np.pi * 0.0762**2 # 6in diameter rocket
         drag_coeff = self._cd_from_accel(mass_kg, frontal_area_m2, accel_z, velocity, pressure, temperature)
         predicted_apogee = self._get_predicted_apogee(mass_kg, agl_altitude, velocity, drag_coeff, frontal_area_m2, pressure, temperature)
 
-        fig, axs = plt.subplots(5, 1, figsize=(14, 22), sharex=True)
+        fig, axs = plt.subplots(4, 1, figsize=(14, 22), sharex=True)
 
         axs[0].plot(time, agl_altitude, color='magenta', linewidth=2, label='AGL Altitude')
+        axs[0].plot(time, predicted_apogee, color='teal', linewidth=2, label='Predicted Apogee')
+        axs[0].axhline(y=agl_apogee, color='k', linestyle='--')
         axs[0].set_ylabel('AGL Altitude (m)', fontsize=12)
         axs[0].legend(fontsize=11)
         axs[0].grid(True, alpha=0.3)
@@ -359,12 +361,8 @@ class FlightDataAnalyzer():
         axs[3].set_ylim(0, 10)  # Set y-axis limits for better visualization
         axs[3].legend(fontsize=11)
         axs[3].grid(True, alpha=0.3)
+        axs[3].set_xlabel('Time (s)', fontsize=12)
 
-        axs[4].plot(time, predicted_apogee, color='teal', linewidth=2, label='Predicted Apogee')
-        axs[4].set_xlabel('Time (s)', fontsize=12)
-        axs[4].set_ylabel('Predicted Apogee (m)', fontsize=12)
-        axs[4].legend(fontsize=11)
-        axs[4].grid(True, alpha=0.3)
 
         apogee_time = time.iloc[np.nanargmax(agl_altitude.values)]
         for ax in axs:
@@ -376,7 +374,7 @@ class FlightDataAnalyzer():
         plt.close(fig)
 def main():
   # Analyze epic_data.csv for time range 1550-1625 seconds
-  flight_analyzer = FlightDataAnalyzer('data/epic_data.csv', time_range=(1550, 1625))
+  flight_analyzer = FlightDataAnalyzer('data/epic_data.csv', time_range=(1570, 1595))
   flight_analyzer.plot()
 
 
