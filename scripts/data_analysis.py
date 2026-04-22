@@ -288,6 +288,7 @@ class FlightDataAnalyzer():
         apogee = altitude + mass / (2*k) * np.log(1 + (k * velocity**2) / (mass * g))
         return apogee
 
+
     def plot_motor_and_acceleration_data(self):
         """Plot motor data on left y-axis and acceleration data on right y-axis"""
         time = self.df['time_s']
@@ -332,11 +333,13 @@ class FlightDataAnalyzer():
         accel_z = self.df['accel_z_mps2'] - 9.81
         agl_apogee = max(agl_altitude)
 
-        mass_kg = 40.0 * 0.45359237
+        mass_kg = 29.756
         frontal_area_m2 = np.pi * 0.0762**2 # 6in diameter rocket
         drag_coeff = self._cd_from_accel(mass_kg, frontal_area_m2, accel_z, velocity, pressure, temperature)
-        predicted_apogee = self._get_predicted_apogee(mass_kg, agl_altitude, velocity, drag_coeff, frontal_area_m2, pressure, temperature)
-
+        rho = self._air_density_from_pressure(pressure, temperature)
+        predicted_apogee = self._get_predicted_apogee(mass_kg, agl_altitude, velocity, drag_coeff, frontal_area_m2, rho)
+        self._get_predicted_apogee(mass_kg, agl_altitude, velocity, drag_coeff, frontal_area_m2, rho)
+        
         fig, axs = plt.subplots(4, 1, figsize=(14, 22), sharex=True)
 
         axs[0].plot(time, agl_altitude, color='magenta', linewidth=2, label='AGL Altitude')
@@ -372,6 +375,8 @@ class FlightDataAnalyzer():
         fig.tight_layout(rect=[0, 0.03, 1, 0.96])
         fig.savefig(self.output_dir / 'mega_plot.png', dpi=150, bbox_inches='tight')
         plt.close(fig)
+
+
 def main():
   # Analyze epic_data.csv for time range 1550-1625 seconds
   flight_analyzer = FlightDataAnalyzer('data/epic_data.csv', time_range=(1570, 1595))
