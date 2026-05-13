@@ -10,7 +10,8 @@ python3 -m virtualenv venv
 source venv/bin/activate
 pip install -r requirements.txt
 
-# run the scripts in the 
-python3 tests/flight-20260411/range_1500-1700.py
+# Run the generators as modules.
+python3 -m tests.flight-20260411.range_1500-1700
+python3 -m tests.fsm-20260410
 ```
 
