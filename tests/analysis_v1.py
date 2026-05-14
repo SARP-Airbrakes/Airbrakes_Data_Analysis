@@ -12,7 +12,6 @@ class FlightDataAnalyzer():
   
     def __init__(self, data_file_path, output_dir, time_range=None):
         self.df = pd.read_csv(data_file_path)
-        self.file_path = data_file_path
         self.time_range = time_range
         
         # Filter data by time range if provided
